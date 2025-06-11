@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi App Docker - Gestión de Usuarios</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🐳 Mi Aplicación Docker</h1>
+        <p class="subtitle">Gestión de Usuarios con Docker Multi-Container</p>
+        
+        <!-- Formulario para agregar usuarios -->
+        <div class="form-section">
+            <h2>➕ Agregar Usuario</h2>
+            <form id="userForm">
+                <input type="text" id="nombre" placeholder="Nombre" required>
+                <input type="email" id="email" placeholder="Email" required>
+                <input type="text" id="telefono" placeholder="Teléfono" required>
+                <button type="submit">Agregar Usuario</button>
+            </form>
+        </div>
+
+        <!-- Lista de usuarios -->
+        <div class="users-section">
+            <h2>👥 Usuarios Registrados</h2>
+            <div id="loading" class="loading">Cargando usuarios...</div>
+            <div id="usersList" class="users-list"></div>
+        </div>
+
+        <!-- Información del sistema -->
+        <div class="info-section">
+            <h2>ℹ️ Información del Sistema</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>Frontend</h3>
+                    <p>Nginx + HTML/CSS/JS</p>
+                    <span class="status online">🟢 Online</span>
+                </div>
+                <div class="info-card">
+                    <h3>Backend</h3>
+                    <p>Node.js + Express</p>
+                    <span id="backendStatus" class="status">⏳ Verificando...</span>
+                </div>
+                <div class="info-card">
+                    <h3>Base de Datos</h3>
+                    <p>MySQL 8.0</p>
+                    <span id="dbStatus" class="status">⏳ Verificando...</span>
+                </div>
+                <div class="info-card">
+                    <h3>Administración</h3>
+                    <p>phpMyAdmin</p>
+                    <a href="http://localhost:8080" target="_blank" class="admin-link">
+                        🔗 Abrir phpMyAdmin
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,130 @@
+# =================================================================
+# DOCKER COMPOSE PARA APLICACIÓN WEB DEMO
+# =================================================================
+version: '3.8'
+
+services:
+  # =================================================================
+  # SERVICIO MYSQL - BASE DE DATOS
+  # =================================================================
+  mysql:
+    image: mysql:8.0
+    container_name: mi-app-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+      MYSQL_DATABASE: mi_app_db
+      MYSQL_USER: appuser
+      MYSQL_PASSWORD: apppassword
+      TZ: America/La_Paz
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "3306:3306"
+    networks:
+      - app-network
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --innodb-buffer-pool-size=256M
+      --max-connections=100
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p123456"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # =================================================================
+  # SERVICIO BACKEND - API NODE.JS
+  # =================================================================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: mi-app-backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: 123456
+      DB_NAME: mi_app_db
+      TZ: America/La_Paz
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+  # =================================================================
+  # SERVICIO FRONTEND - NGINX + HTML/CSS/JS
+  # =================================================================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: mi-app-frontend
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+    ports:
+      - "80:80"
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # =================================================================
+  # SERVICIO PHPMYADMIN - ADMINISTRACIÓN DE BASE DE DATOS
+  # =================================================================
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: mi-app-phpmyadmin
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      PMA_USER: root
+      PMA_PASSWORD: 123456
+      MYSQL_ROOT_PASSWORD: 123456
+      TZ: America/La_Paz
+    ports:
+      - "8080:80"
+    networks:
+      - app-network
+
+# =================================================================
+# DEFINICIÓN DE VOLÚMENES
+# =================================================================
+volumes:
+  mysql_data:
+    driver: local
+
+# =================================================================
+# DEFINICIÓN DE REDES
+# =================================================================
+networks:
+  app-network:
+    name: mi-app-network
+    driver: bridge
